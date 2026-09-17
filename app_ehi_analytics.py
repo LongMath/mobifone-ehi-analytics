@@ -22,10 +22,21 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #F4F6F9; }
     
-    /* ẨN NÚT DEPLOY, HEADER VÀ FOOTER */
-    .stDeployButton, [data-testid="stDeployButton"], footer, #MainMenu, header {
+    /* ẨN NÚT DEPLOY, MENU 3 CHẤM VÀ FOOTER (GIỮ LẠI NÚT MỞ SIDEBAR) */
+    .stDeployButton, 
+    [data-testid="stDeployButton"], 
+    footer, 
+    #MainMenu, 
+    [data-testid="stToolbar"] {
         visibility: hidden !important;
         display: none !important;
+    }
+    
+    /* Đảm bảo nút mũi tên mở Sidebar luôn hiển thị rõ ràng */
+    [data-testid="stSidebarCollapsedControl"] {
+        visibility: visible !important;
+        display: block !important;
+        color: #005baa !important;
     }
     
     /* BIẾN CÁC CHẤM TRÒN RADIO THÀNH CÁC TAB NÚT BẤM PHẲNG HIỆN ĐẠI */
