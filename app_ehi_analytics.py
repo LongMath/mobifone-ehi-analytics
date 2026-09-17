@@ -497,8 +497,10 @@ def run_logistic_burnout_model(df):
     return df_res
 
 # ==============================================================================
-# 5. SIDEBAR: TIẾP NHẬN DỮ LIỆU
+# 5. SIDEBAR: TIẾP NHẬN DỮ LIỆU & TẢI FILE MẪU
 # ==============================================================================
+import io
+
 with st.sidebar:
     st.markdown("""
     <div style='text-align: center; padding: 10px 0;'>
@@ -506,14 +508,54 @@ with st.sidebar:
         <div style='font-size: 11px; font-weight: 800; color: #475569;'>BAN QUẢN LÝ ĐỀ TÀI KH&CN - EHI</div>
     </div>
     """, unsafe_allow_html=True)
+    
     st.markdown("### 📥 Nạp dữ liệu khảo sát")
+    
     uploaded_file = st.file_uploader(
         "Tải file kết quả từ Google Form (.xlsx, .csv):", type=["xlsx", "csv"],
         help="Hệ thống tự động nhận diện các cột mã hóa [JW1]...[HB5], [TT1]...[TT5] và làm sạch dữ liệu."
     )
     
+    # --- TÍNH NĂNG TẢI FILE MẪU CHUẨN ---
+    st.markdown("<div style='margin-top: -6px; margin-bottom: 12px;'>", unsafe_allow_html=True)
     default_excel = os.path.join(os.getcwd(), "Khao_Sat_EHI_MobiFone_650_Mau_Chuan.xlsx")
     default_csv = os.path.join(os.getcwd(), "Khao_Sat_EHI_MobiFone_650_Mau_Chuan.csv")
+    
+    # Chuẩn bị dữ liệu tải file mẫu
+    sample_bytes = None
+    sample_name = "Mau_Khao_Sat_EHI_MobiFone_Chuan.xlsx"
+    
+    if os.path.exists(default_excel):
+        with open(default_excel, "rb") as f_s:
+            sample_bytes = f_s.read()
+    elif "ehi_df" in st.session_state and not st.session_state["ehi_df"].empty:
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            st.session_state["ehi_df"].head(50).to_excel(writer, index=False)
+        sample_bytes = buffer.getvalue()
+    else:
+        # Tạo khung mẫu cấu trúc chuẩn nếu chưa có sẵn dữ liệu
+        sample_cols = ["Dấu thời gian", "Mã nhân viên", "[TT1] Đơn vị", "[TT2] Khối công việc", "[TT3] Thâm niên", "[TT4] Hình thức làm việc", "[TT5] Xếp loại KPI kỳ trước"]
+        for g_code, items in GROUPS.items():
+            for it in items:
+                sample_cols.append(f"[{it}] {INDICATORS_DESC[it][0]}")
+        df_demo_sample = pd.DataFrame(columns=sample_cols)
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df_demo_sample.to_excel(writer, index=False)
+        sample_bytes = buffer.getvalue()
+
+    st.download_button(
+        label="📑 Tải file mẫu khảo sát (.xlsx)",
+        data=sample_bytes,
+        file_name=sample_name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        help="Bấm để tải tệp Excel mẫu chuẩn cấu trúc 25 câu hỏi Likert [JW1]...[HB5] và thông tin nhân khẩu học [TT1]...[TT5].",
+        use_container_width=True
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+    # -----------------------------------
+
     if "ehi_df" not in st.session_state:
         if os.path.exists(default_excel):
             st.session_state["ehi_df"] = clean_and_normalize_data(pd.read_excel(default_excel))
@@ -521,17 +563,6 @@ with st.sidebar:
             st.session_state["ehi_df"] = clean_and_normalize_data(pd.read_csv(default_csv))
         else:
             st.session_state["ehi_df"] = pd.DataFrame()
-
-if uploaded_file is not None:
-    try:
-        if uploaded_file.name.endswith(".csv"): df_in = pd.read_csv(uploaded_file)
-        else: df_in = pd.read_excel(uploaded_file)
-        st.session_state["ehi_df"] = clean_and_normalize_data(df_in)
-        st.sidebar.success(f"📁 Đã nạp: {uploaded_file.name} ({len(st.session_state['ehi_df'])} mẫu)")
-    except Exception as e_up:
-        st.sidebar.error(f"Lỗi: {str(e_up)}")
-
-df_current = st.session_state.get("ehi_df", pd.DataFrame())
 
 # ==============================================================================
 # 6. TÍNH TOÁN CÁC THAM SỐ TOÁN THỐNG KÊ
