@@ -22,14 +22,27 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #F4F6F9; }
     
-    /* ẨN NÚT DEPLOY, MENU 3 CHẤM VÀ FOOTER (GIỮ LẠI NÚT MỞ SIDEBAR) */
-    .stDeployButton, 
-    [data-testid="stDeployButton"], 
-    footer, 
-    #MainMenu, 
-    [data-testid="stToolbar"] {
-        visibility: hidden !important;
+    /* 1. Chỉ ẩn các nút bên phải (Deploy, Menu 3 chấm, Footer) */
+    .stDeployButton,
+    [data-testid="stDeployButton"],
+    #MainMenu,
+    [data-testid="stToolbarActions"],
+    footer {
         display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 2. Làm trong suốt nền header để không chiếm diện tích */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+
+    /* 3. Đảm bảo nút mở lại sidebar (>>) luôn hiển thị và nổi bật */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        z-index: 999999 !important;
     }
     
     /* Đảm bảo nút mũi tên mở Sidebar luôn hiển thị rõ ràng */
